@@ -90,3 +90,12 @@ plt.ylabel('L2 Loss')
 plt.show()
 
 
+data = pd.DataFrame({'Ancho de pétalo': x_vals, 'Largo de sépalo': y_vals})
+# Calcular la matriz de correlación
+correlation_matrix = data.corr()
+# Crear un mapa de calor (heatmap) de la matriz de correlación
+plt.figure(figsize=(8, 6))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=.5)
+plt.title('Matriz de Correlación')
+plt.show()
+

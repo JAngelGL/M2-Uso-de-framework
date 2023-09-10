@@ -18,14 +18,14 @@ sess = tf.Session()
 columns = ["Largo de sépalo", "Ancho de sépalo", "Largo de pétalo", "Ancho de pétalo", "Especies"]
 df = pd.read_csv('iris.data', names=columns)
 
-# Dividir los datos en conjuntos de entrenamiento, prueba y validación
+# Dividir los datos en características (x_vals) y etiquetas (y_vals)
 x_vals = np.array(df["Ancho de pétalo"])
 y_vals = np.array(df["Largo de sépalo"])
-x_train, x_test, y_train, y_test = train_test_split(x_vals, y_vals, test_size=0.2, random_state=seed)
-x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.25, random_state=seed)
 
-# Tamaño de batch
-batch_size = 25
+
+# Dividir los datos en conjuntos de entrenamiento, prueba y validación (60% entrenamiento, 20% prueba, 20% validación)
+x_train, x_temp, y_train, y_temp = train_test_split(x_vals, y_vals, test_size=0.4, random_state=seed)
+x_test, x_val, y_test, y_val = train_test_split(x_temp, y_temp, test_size=0.5, random_state=seed)
 
 x_data = tf.placeholder(shape=[None, 1], dtype=tf.float32)
 y_target = tf.placeholder(shape=[None, 1], dtype=tf.float32)
@@ -48,22 +48,25 @@ init = tf.initialize_all_variables()
 sess.run(init)
 
 loss_vec = []
-
-# Entrenamiento del modelo
-for i in range(100):
-    rand_index = np.random.choice(len(x_train), size=batch_size)
+for i in range(100):    
     rand_x = np.transpose([x_train[rand_index]])
     rand_y = np.transpose([y_train[rand_index]])
+    
+    # Entrenamiento del modelo
     sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
     temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
     loss_vec.append(temp_loss)
+    
     if (i + 1) % 25 == 0:
         print("Step #" + str(i + 1) + " A = " + str(sess.run(A)) + ' b = ' + str(sess.run(b)))
         print("Loss = " + str(temp_loss))
 
-# Evaluación del modelo en el conjunto de prueba
+# Evaluar el modelo en los conjuntos de prueba y validación
 test_loss = sess.run(loss, feed_dict={x_data: np.transpose([x_test]), y_target: np.transpose([y_test])})
+val_loss = sess.run(loss, feed_dict={x_data: np.transpose([x_val]), y_target: np.transpose([y_val])})
+
 print("Pérdida en el conjunto de prueba:", test_loss)
+print("Pérdida en el conjunto de validación:", val_loss)
 
 [slope] = sess.run(A)
 [y_intercept] = sess.run(b)
@@ -71,10 +74,12 @@ print("Pérdida en el conjunto de prueba:", test_loss)
 print("Valor de A (pendiente):", slope)
 print("Valor de b (intercepto):", y_intercept)
 
+# Calcular la mejor línea de ajuste
 best_fit = []
 for i in x_vals:
     best_fit.append(slope * i + y_intercept)
 
+# Graficar los datos y la mejor línea de ajuste
 plt.plot(x_vals, y_vals, 'o', label='Data Points')
 plt.plot(x_vals, best_fit, 'r-', label='Mejor línea de ajuste', linewidth=3)
 plt.legend(loc='upper left')
@@ -83,19 +88,9 @@ plt.xlabel('Ancho de pétalo')
 plt.ylabel('Largo de sépalo')
 plt.show()
 
+# Graficar la pérdida (loss) a lo largo de las iteraciones
 plt.plot(loss_vec, 'k-')
 plt.title('L2 Loss por generación')
 plt.xlabel('Generación')
 plt.ylabel('L2 Loss')
 plt.show()
-
-
-data = pd.DataFrame({'Ancho de pétalo': x_vals, 'Largo de sépalo': y_vals})
-# Calcular la matriz de correlación
-correlation_matrix = data.corr()
-# Crear un mapa de calor (heatmap) de la matriz de correlación
-plt.figure(figsize=(8, 6))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=.5)
-plt.title('Matriz de Correlación')
-plt.show()
-

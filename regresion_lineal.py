@@ -22,6 +22,8 @@ df = pd.read_csv('iris.data', names=columns)
 x_vals = np.array(df["Ancho de pétalo"])
 y_vals = np.array(df["Largo de sépalo"])
 
+# Tamaño de batch
+batch_size = 25
 
 # Dividir los datos en conjuntos de entrenamiento, prueba y validación (60% entrenamiento, 20% prueba, 20% validación)
 x_train, x_temp, y_train, y_temp = train_test_split(x_vals, y_vals, test_size=0.4, random_state=seed)
@@ -40,19 +42,20 @@ model_output = tf.add(tf.matmul(x_data, A), b)
 # Función de pérdida (MSE)
 loss = tf.reduce_mean(tf.square(y_target - model_output))
 
-# Declaramos el optimizador (Gradient Descent)
-my_opt = tf.train.GradientDescentOptimizer(0.05)
+# Declaramos el optimizador (Gradient Descent) learning rate
+my_opt = tf.train.GradientDescentOptimizer(0.07)
 train_step = my_opt.minimize(loss)
 
 init = tf.initialize_all_variables()
 sess.run(init)
 
+# Entrenamiento del modelo
 loss_vec = []
-for i in range(100):    
+for i in range(100):
+    rand_index = np.random.choice(len(x_train), size=batch_size)
     rand_x = np.transpose([x_train[rand_index]])
     rand_y = np.transpose([y_train[rand_index]])
     
-    # Entrenamiento del modelo
     sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
     temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
     loss_vec.append(temp_loss)
@@ -67,6 +70,19 @@ val_loss = sess.run(loss, feed_dict={x_data: np.transpose([x_val]), y_target: np
 
 print("Pérdida en el conjunto de prueba:", test_loss)
 print("Pérdida en el conjunto de validación:", val_loss)
+
+# Calcular la varianza y el sesgo (bias) del modelo
+predictions = sess.run(model_output, feed_dict={x_data: np.transpose([x_val])})
+bias = np.mean(predictions - np.transpose([y_val]))
+variance = np.mean(np.square(predictions - np.transpose([y_val])))
+
+print("Sesgo (Bias) del modelo:", bias)
+print("Varianza del modelo:", variance)
+
+# Calcular el Error Cuadrático Medio (MSE) en el conjunto de prueba
+# Un MSE más bajo indica un mejor ajuste del modelo a los datos
+mse = sess.run(tf.reduce_mean(tf.square(model_output - y_target)), feed_dict={x_data: np.transpose([x_test]), y_target: np.transpose([y_test])})
+print("Error Cuadrático Medio (MSE) en el conjunto de prueba:", mse)
 
 [slope] = sess.run(A)
 [y_intercept] = sess.run(b)

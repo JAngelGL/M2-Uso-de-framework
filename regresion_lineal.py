@@ -35,7 +35,7 @@ x_test, x_val, y_test, y_val = train_test_split(x_temp, y_temp, test_size=0.5, r
 x_data = tf.placeholder(shape=[None, 1], dtype=tf.float32)
 y_target = tf.placeholder(shape=[None, 1], dtype=tf.float32)
 
-# Variables para la pendiente (A) y el intercepto (b)
+# Variables para la pendiente (A) y el sesgo (b)
 A = tf.Variable(tf.random_normal(shape=[1, 1]))
 b = tf.Variable(tf.random_normal(shape=[1, 1]))
 
@@ -45,8 +45,12 @@ model_output = tf.add(tf.matmul(x_data, A), b)
 # Función de pérdida (MSE)
 loss = tf.reduce_mean(tf.square(y_target - model_output))
 
+# Parametros
+epoch = 100
+learning_rate = 0.05
+
 # Declaramos el optimizador (Gradient Descent)
-my_opt = tf.train.GradientDescentOptimizer(0.05)
+my_opt = tf.train.GradientDescentOptimizer(learning_rate)
 train_step = my_opt.minimize(loss)
 
 init = tf.initialize_all_variables()
@@ -54,39 +58,46 @@ sess.run(init)
 
 # Entrenamiento del modelo
 loss_vec = []
-for i in range(100):
+for i in range(epoch):
+    rand_index = np.random.choice(len(x_train), size=len(x_train))
     rand_x = x_train[rand_index]
     rand_y = y_train[rand_index]
-    
+
     sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
     temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
     loss_vec.append(temp_loss)
-    
+
     if (i + 1) % 25 == 0:
         print("Step #" + str(i + 1) + " A = " + str(sess.run(A)) + ' b = ' + str(sess.run(b)))
         print("Loss = " + str(temp_loss))
+        
+        # Evaluar el modelo en los conjuntos de prueba y validación
+        test_loss = sess.run(loss, feed_dict={x_data: x_test, y_target: y_test})
+        val_loss = sess.run(loss, feed_dict={x_data: x_val, y_target: y_val})
 
-# Evaluar el modelo en los conjuntos de prueba y validación
-test_loss = sess.run(loss, feed_dict={x_data: x_test, y_target: y_test})
-val_loss = sess.run(loss, feed_dict={x_data: x_val, y_target: y_val})
+        print("Pérdida en el conjunto de prueba:", test_loss)
+        print("Pérdida en el conjunto de validación:", val_loss)
 
-print("Pérdida en el conjunto de prueba:", test_loss)
-print("Pérdida en el conjunto de validación:", val_loss)
+# Calcular la varianza del modelo
+predictions = sess.run(model_output, feed_dict={x_data: x_val})
+variance = np.mean(np.square(predictions - y_val))
+
+print("Varianza del modelo:", variance)
 
 # Calcular el Error Cuadrático Medio (MSE) en el conjunto de prueba
 mse = sess.run(tf.reduce_mean(tf.square(model_output - y_target)), feed_dict={x_data: x_test, y_target: y_test})
 print("Error Cuadrático Medio (MSE) en el conjunto de prueba:", mse)
 
 [slope] = sess.run(A)
-[y_intercept] = sess.run(b)
+[intercept] = sess.run(b)
 
 print("Valor de A (pendiente):", slope)
-print("Valor de b (intercepto):", y_intercept)
+print("Valor de b (sesgo):", intercept)
 
 # Calcular la mejor línea de ajuste
 best_fit = []
 for i in x_vals_normalized:
-    best_fit.append(slope * i + y_intercept)
+    best_fit.append(slope * i + intercept)
 
 # Graficar los datos y la mejor línea de ajuste
 plt.plot(x_vals_normalized, y_vals_normalized, 'o', label='Data Points')

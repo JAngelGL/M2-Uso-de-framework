@@ -7,6 +7,7 @@ ops.reset_default_graph()
 import pandas as pd
 import seaborn as sns
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 # Establecer una semilla para replicabilidad
 seed = 42
@@ -22,11 +23,13 @@ df = pd.read_csv('iris.data', names=columns)
 x_vals = np.array(df["Ancho de pétalo"])
 y_vals = np.array(df["Largo de sépalo"])
 
-# Tamaño de batch
-batch_size = 25
+# Normalizar los datos
+scaler = MinMaxScaler()
+x_vals_normalized = scaler.fit_transform(x_vals.reshape(-1, 1))
+y_vals_normalized = scaler.fit_transform(y_vals.reshape(-1, 1))
 
 # Dividir los datos en conjuntos de entrenamiento, prueba y validación (60% entrenamiento, 20% prueba, 20% validación)
-x_train, x_temp, y_train, y_temp = train_test_split(x_vals, y_vals, test_size=0.4, random_state=seed)
+x_train, x_temp, y_train, y_temp = train_test_split(x_vals_normalized, y_vals_normalized, test_size=0.4, random_state=seed)
 x_test, x_val, y_test, y_val = train_test_split(x_temp, y_temp, test_size=0.5, random_state=seed)
 
 x_data = tf.placeholder(shape=[None, 1], dtype=tf.float32)
@@ -42,8 +45,8 @@ model_output = tf.add(tf.matmul(x_data, A), b)
 # Función de pérdida (MSE)
 loss = tf.reduce_mean(tf.square(y_target - model_output))
 
-# Declaramos el optimizador (Gradient Descent) learning rate
-my_opt = tf.train.GradientDescentOptimizer(0.07)
+# Declaramos el optimizador (Gradient Descent)
+my_opt = tf.train.GradientDescentOptimizer(0.05)
 train_step = my_opt.minimize(loss)
 
 init = tf.initialize_all_variables()
@@ -52,9 +55,8 @@ sess.run(init)
 # Entrenamiento del modelo
 loss_vec = []
 for i in range(100):
-    rand_index = np.random.choice(len(x_train), size=batch_size)
-    rand_x = np.transpose([x_train[rand_index]])
-    rand_y = np.transpose([y_train[rand_index]])
+    rand_x = x_train[rand_index]
+    rand_y = y_train[rand_index]
     
     sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
     temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
@@ -65,23 +67,14 @@ for i in range(100):
         print("Loss = " + str(temp_loss))
 
 # Evaluar el modelo en los conjuntos de prueba y validación
-test_loss = sess.run(loss, feed_dict={x_data: np.transpose([x_test]), y_target: np.transpose([y_test])})
-val_loss = sess.run(loss, feed_dict={x_data: np.transpose([x_val]), y_target: np.transpose([y_val])})
+test_loss = sess.run(loss, feed_dict={x_data: x_test, y_target: y_test})
+val_loss = sess.run(loss, feed_dict={x_data: x_val, y_target: y_val})
 
 print("Pérdida en el conjunto de prueba:", test_loss)
 print("Pérdida en el conjunto de validación:", val_loss)
 
-# Calcular la varianza y el sesgo (bias) del modelo
-predictions = sess.run(model_output, feed_dict={x_data: np.transpose([x_val])})
-bias = np.mean(predictions - np.transpose([y_val]))
-variance = np.mean(np.square(predictions - np.transpose([y_val])))
-
-print("Sesgo (Bias) del modelo:", bias)
-print("Varianza del modelo:", variance)
-
 # Calcular el Error Cuadrático Medio (MSE) en el conjunto de prueba
-# Un MSE más bajo indica un mejor ajuste del modelo a los datos
-mse = sess.run(tf.reduce_mean(tf.square(model_output - y_target)), feed_dict={x_data: np.transpose([x_test]), y_target: np.transpose([y_test])})
+mse = sess.run(tf.reduce_mean(tf.square(model_output - y_target)), feed_dict={x_data: x_test, y_target: y_test})
 print("Error Cuadrático Medio (MSE) en el conjunto de prueba:", mse)
 
 [slope] = sess.run(A)
@@ -92,16 +85,16 @@ print("Valor de b (intercepto):", y_intercept)
 
 # Calcular la mejor línea de ajuste
 best_fit = []
-for i in x_vals:
+for i in x_vals_normalized:
     best_fit.append(slope * i + y_intercept)
 
 # Graficar los datos y la mejor línea de ajuste
-plt.plot(x_vals, y_vals, 'o', label='Data Points')
-plt.plot(x_vals, best_fit, 'r-', label='Mejor línea de ajuste', linewidth=3)
+plt.plot(x_vals_normalized, y_vals_normalized, 'o', label='Data Points')
+plt.plot(x_vals_normalized, best_fit, 'r-', label='Mejor línea de ajuste', linewidth=3)
 plt.legend(loc='upper left')
-plt.title('Largo de sépalo vs Ancho de pétalo')
-plt.xlabel('Ancho de pétalo')
-plt.ylabel('Largo de sépalo')
+plt.title('Largo de sépalo vs Ancho de pétalo (Normalizado)')
+plt.xlabel('Ancho de pétalo Normalizado')
+plt.ylabel('Largo de sépalo Normalizado')
 plt.show()
 
 # Graficar la pérdida (loss) a lo largo de las iteraciones

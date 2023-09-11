@@ -29,7 +29,11 @@ x_vals_normalized = scaler.fit_transform(x_vals.reshape(-1, 1))
 y_vals_normalized = scaler.fit_transform(y_vals.reshape(-1, 1))
 
 # Dividir los datos en conjuntos de entrenamiento, prueba y validación (60% entrenamiento, 20% prueba, 20% validación)
-x_train, x_temp, y_train, y_temp = train_test_split(x_vals_normalized, y_vals_normalized, test_size=0.4, random_state=seed)
+#x_train, x_temp, y_train, y_temp = train_test_split(x_vals_normalized, y_vals_normalized, test_size=0.4, random_state=seed)
+#x_test, x_val, y_test, y_val = train_test_split(x_temp, y_temp, test_size=0.5, random_state=seed)
+
+# Dividir los datos en conjuntos de entrenamiento, prueba y validación (80% entrenamiento, 10% prueba, 10% validación)
+x_train, x_temp, y_train, y_temp = train_test_split(x_vals_normalized, y_vals_normalized, test_size=0.2, random_state=seed)
 x_test, x_val, y_test, y_val = train_test_split(x_temp, y_temp, test_size=0.5, random_state=seed)
 
 x_data = tf.placeholder(shape=[None, 1], dtype=tf.float32)
@@ -47,7 +51,7 @@ loss = tf.reduce_mean(tf.square(y_target - model_output))
 
 # Parametros
 epoch = 100
-learning_rate = 0.05
+learning_rate = 0.07
 
 # Declaramos el optimizador (Gradient Descent)
 my_opt = tf.train.GradientDescentOptimizer(learning_rate)

@@ -8,18 +8,23 @@ La regresión lineal es una técnica de aprendizaje automático que se utiliza p
 
 ## Funcionamiento del Código
 
-El código consta de los siguientes pasos:
+## Funcionamiento del Código
 
-1. **Lectura de Datos:** El código carga los datos del archivo 'iris.data' en un DataFrame de Pandas. Los datos incluyen mediciones de las longitudes de sépalo y pétalo de diferentes especies de iris.
+El código `regression_model.py` realiza las siguientes tareas:
 
-2. **Preparación de los Datos:** Se seleccionan las columnas relevantes (`Largo de sépalo` y `Ancho de pétalo`) como variables de entrada (`x_vals`) y la variable objetivo (`Largo de sépalo`) como la variable de salida (`y_vals`).
+1. **Carga de Datos**: Lee el conjunto de datos de ejemplo (`iris.data`) que contiene las mediciones de las flores de iris, incluyendo el largo del sépalo y el ancho del pétalo.
 
-3. **Construcción del Modelo:** Se define un modelo de regresión lineal que toma `x_data` (ancho de pétalo) como entrada y predice `y_target` (largo de sépalo) utilizando una variable de pendiente (`A`) y un término de sesgo (`b`).
+2. **Preprocesamiento de Datos**: Normaliza los datos utilizando Min-Max scaling para que estén en el rango [0, 1]. Luego, divide el conjunto de datos en tres partes: entrenamiento (60%), prueba (20%) y validación (20%).
 
-4. **Entrenamiento del Modelo:** Se utiliza TensorFlow para entrenar el modelo. Se minimiza la pérdida (error) entre las predicciones del modelo y los valores reales (`y_target`) utilizando el optimizador de descenso de gradiente.
+3. **Definición del Modelo**: Utiliza TensorFlow para definir un modelo de regresión lineal que predice la longitud del sépalo en función del ancho del pétalo. El modelo se entrena para encontrar los valores óptimos de la pendiente (A) y el sesgo (b) que minimizan la pérdida (Loss).
 
-5. **Visualización de Resultados:** Después del entrenamiento, el código imprime los valores finales de la pendiente (`A`) y el término de sesgo (`b`). Luego, se calcula y visualiza la línea de regresión lineal junto con los datos originales en un gráfico. También se muestra un gráfico de la pérdida a lo largo de las iteraciones de entrenamiento.
+4. **Entrenamiento del Modelo**: El modelo se entrena utilizando el optimizador Gradient Descent. Se ejecuta un bucle de entrenamiento durante un número especificado de iteraciones. En cada iteración, se selecciona un lote (batch) aleatorio del conjunto de entrenamiento y se actualizan los parámetros del modelo para reducir la pérdida.
 
+5. **Evaluación del Modelo**: Después del entrenamiento, se evalúa el modelo en los conjuntos de prueba y validación. Se calcula el Error Cuadrático Medio (MSE) en el conjunto de prueba, la varianza del modelo y se muestran métricas relevantes.
+
+6. **Visualización de Resultados**: Se genera un gráfico que muestra los datos originales y la mejor línea de ajuste del modelo en el conjunto de datos normalizado.
+
+El código incluye comentarios para ayudar a comprender cada parte del proceso.
 ## Requisitos
 
 Antes de ejecutar el código, asegúrate de tener instaladas las siguientes bibliotecas:

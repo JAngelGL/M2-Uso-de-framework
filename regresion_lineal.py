@@ -81,8 +81,9 @@ for i in range(epoch):
 # Calcular la varianza del modelo
 predictions = sess.run(model_output, feed_dict={x_data: x_val})
 variance = np.mean(np.square(predictions - y_val))
-
+bias = np.mean(predictions - y_val)
 print("Varianza del modelo:", variance)
+print("Bias del modelo:", bias)
 
 # Calcular el Error Cuadrático Medio (MSE) en el conjunto de prueba
 mse = sess.run(tf.reduce_mean(tf.square(model_output - y_target)), feed_dict={x_data: x_test, y_target: y_test})

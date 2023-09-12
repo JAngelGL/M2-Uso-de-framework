@@ -5,7 +5,6 @@ tf.disable_v2_behavior()
 from tensorflow.python.framework import ops
 ops.reset_default_graph()
 import pandas as pd
-import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 

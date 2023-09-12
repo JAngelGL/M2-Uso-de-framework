@@ -37,4 +37,3 @@ Antes de ejecutar el código, asegúrate de tener instaladas las siguientes bibl
 - `numpy` para manejar matrices y cálculos numéricos.
 - `tensorflow` para construir y entrenar el modelo de regresión lineal.
 - `pandas` para cargar y manipular los datos.
-- `seaborn` para crear una matriz de correlación visual.
